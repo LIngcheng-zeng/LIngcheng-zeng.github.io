@@ -6,7 +6,7 @@ Connect-oriented ,面向连接
 
 ## TCP 连接组成
 
-<img src="./assets/image-20250713020233245.png" alt="image-20250713020233245" />
+![image-20250713020233245](https://github.com/LIngcheng-zeng/LIngcheng-zeng.github.io/blob/v4/content/note/assets/image-20250713020233245.png)
 
 ## TCP 报文段格式
 
