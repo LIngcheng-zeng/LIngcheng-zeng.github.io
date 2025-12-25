@@ -200,3 +200,6 @@ class TestSonAndParent implements SonAndParentKey<StringLabelValue> {
 
 ```
 
+https://g6.antv.antgroup.com/manual/plugin/tooltip#enterable---%E9%BC%A0%E6%A0%87%E5%8F%AF%E8%BF%9B%E5%85%A5
+
+${item.data.label}
