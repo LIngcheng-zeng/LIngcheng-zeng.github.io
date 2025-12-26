@@ -213,3 +213,7 @@ https://bugs.openjdk.org/browse/JDK-8357684
 
 
 https://www.oracle.com/java/technologies/javase/hotspot-garbage-collection.html
+
+
+
+https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A
