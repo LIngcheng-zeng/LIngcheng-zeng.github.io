@@ -207,3 +207,9 @@ ${item.data.label}
 技巧：通过添加`-XX+PrintJNIGCStalls`可以打印出进入临界区的线程信息。
 
 https://bugs.openjdk.org/browse/JDK-8192647?focusedId=14574575&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel
+
+https://bugs.openjdk.org/browse/JDK-8357684
+
+
+
+https://www.oracle.com/java/technologies/javase/hotspot-garbage-collection.html
