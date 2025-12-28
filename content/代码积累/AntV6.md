@@ -200,20 +200,5 @@ class TestSonAndParent implements SonAndParentKey<StringLabelValue> {
 
 ```
 
-https://g6.antv.antgroup.com/manual/plugin/tooltip#enterable---%E9%BC%A0%E6%A0%87%E5%8F%AF%E8%BF%9B%E5%85%A5
-
-${item.data.label}
-
-技巧：通过添加`-XX+PrintJNIGCStalls`可以打印出进入临界区的线程信息。
-
-https://bugs.openjdk.org/browse/JDK-8192647?focusedId=14574575&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel
-
-https://bugs.openjdk.org/browse/JDK-8357684
 
 
-
-https://www.oracle.com/java/technologies/javase/hotspot-garbage-collection.html
-
-
-
-https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A
