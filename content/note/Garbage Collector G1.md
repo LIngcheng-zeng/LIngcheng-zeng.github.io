@@ -1,48 +1,72 @@
-## 适用配置
+# 堆布局
 
-多核处理器，大内存机器。G1 致力于 平衡 吞吐量和延迟。
+![Description of Figure 7-1 follows](./assets/jsgct_dt_004_grbg_frst_hp.png)
 
-## 特点
+***<u>The young generation</u>*** contains ***<u>eden regions (red)</u>*** and **<u>*survivor regions (red with "S")*</u>**. 
 
-1. heap size 可以达到数十GB,甚至更大。
-2. heap 中存在 大量碎片
-3. 可预测的暂停时间不超过几百毫秒，**避免长时间的垃圾回收暂停**。虽然 G1 收集器的**垃圾回收暂停通常更短**，但应用吞吐量也往往略低。
+***<u>Old regions (light blue)</u>*** make up the old generation. Old generation regions may be **humongous (light blue with "H")** for objects that span multiple regions.（浅蓝色）构成了老年代。对于跨越多个区域的对象，老年代区域可能非常庞大，称之为H区（浅蓝色并标有“H”）。
 
-## 基础理论认知
+# 对象在堆中的位置变化
 
-1. G1 是一种分代式、增量式、并行式、大部分并发式、暂停式且具有内存整理功能的垃圾收集器，它会在每次暂停应用程序执行的阶段监控暂停时间目标。
-2. 空间回收工作主要集中在年轻一代，因为这样做效率最高，同时也会偶尔对老一代进行空间回收。
-3. G1 以逐步并行的方式进行空间回收。G1 通过跟踪之前应用行为和垃圾回收暂停的信息来实现可预测性，从而构建相关成本的模型。它利用这些信息来评估暂停期间的工作量。例如，G1 优先回收最有效率的区域（也就是那些大部分被垃圾填满的区域，因此得名）
-4. **G1 会在系统停止运行期间执行垃圾回收和空间回收。**通常会将存活对象从源区域复制到堆中的一个或多个目标区域，并调整对这些已移动对象的现有引用。年轻一代（伊甸园和幸存者区域）的对象会根据其年龄被复制到幸存者区域或老旧区域。旧区域中的对象被复制到其他旧区域中。对于位于庞大区域内的物体，G1 的处理方式有所不同。G1 只负责判断这些物体是否存活，如果它们不存活，则收回它们所占据的空间。G1 只会在万不得已的情况下，以极其缓慢的速度进行收集，才会移动这些庞大的物体。
+## 初始分配内存时
+
+应用程序始终会将对象分配到年轻代，即 Eden 区，但超大对象除外，这些对象会直接分配到老年代。
+
+大对象被分配到连续regions 的老年代, 占用的内存从第一个region 的开始位置，到最后一个region的结束位置。即使真实的占用没有占满最后一个region。【内存碎片】
+
+## GC 活动周期
+
+![Description of Figure 7-2 follows](./Garbage%20Collector%20G1.assets/jsgct_dt_001_grbgcltncyl.png)
+
+*<u>**Normal young collections**</u>* 
+
+通过复制算法，整理移动到 S区 或者  提升新生代对象到老年代。
+
+###  Concurrent Start young collection 
+
+标记确定老年代区域中的存活对象，通过mixed-gc 的方式 ，JVM进行正常的 *<u>**Normal young collections**</u>*  和 部分老年代的收集【老年代区域中的对象被复制到其他老年代区域】。
+
+对于存活的H区对象，仅判断是否存活，存活时不会移动位置。不存活时，收集这个区域。
+
+通常，只有在标记阶段结束后的清理暂停期间，或者在对象变得不可达时进行完整垃圾回收（Full GC）期间，才能回收大型对象。
+
+但是，对于基本类型数组（例如布尔型、各种整数类型和浮点数值）等大型对象，G1垃圾收集器提供了一种特殊机制。如果大型对象在任何垃圾回收暂停期间没有被许多对象引用，G1 会尝试在此时回收它们。
+
+只有在第一次完整垃圾回收（Full GC）未能释放足够的连续内存用于分配庞大对象，并且在同一暂停期间的第二次完整垃圾回收也失败后，庞大对象才会在最后的回收尝试中移动。这个过程非常缓慢。由于包含庞大对象末尾的堆区域中存在不可用的空间，G1 仍然可能因内存不足而退出虚拟机。
+
+# GC 触发时机
+
+## *<u>**Normal young collections**</u>* 
+
+1. eden 区内存不足以分配
+2. 庞大对象的分配可能会导致垃圾回收暂停提前发生。G1 会在每次分配庞大对象时检查初始堆占用阈值，如果当前占用率超过该阈值，则可能会立即强制执行初始标记年轻代回收。
+
+## MIXED-***<u>GC</u>***
+
+1. 在老年代分配失败
+
+## ***<u>FULL</u>***-GC
+
+1. 当G1垃圾收集器判断继续回收老年代区域无法获得足够多的可用空间，空间回收阶段【space reclamation】就结束了。 此时若内存空间不足时，触发Full-GC
+2. 手动调用 System.gc()
+
+# 参数
+
+```sh
+# 堆区域的大小。默认值基于最大堆大小，计算结果大约为渲染 2048 个区域，最大符合人体工程学的值为 32 MB。用户指定的大小必须是 2 的幂，有效值范围为 1 到 512 MB。
+-XX:G1HeapRegionSize=<ergo> 
+# 最大暂停时间间隔的目标值。默认情况下，G1 不设置任何目标值，这允许 G1 在极端情况下连续执行垃圾回收。
+-XX:GCPauseTimeInterval = <ergo>
+# 在最初几个回收周期中，G1 将使用老年代 45% 的占用率作为标记开始阈值
+-XX:+G1UseAdaptiveIHOP -XX:InitiatingHeapOccupancyPercent=45
+# 来禁用显式垃圾回收,该标志会使虚拟机忽略对 System.gc() 的调用
+-XX:+DisableExplicitGC 
+
+```
 
 
 
-## 堆内存布局
-
-![image-20251228165531028](D:\note\LIngcheng-zeng.github.io\content\note\assets\image-20251228165531028.png)
-
-年轻一代包含 eden regions（红色）和 survivor regions（红色带“S”）。
-
-这些区域的功能与其他收集器中相应的连续空间相同，区别在于 G1 中的这些区域在内存中通常以非连续模式排列。
-
-老一代由老区域（浅蓝色）构成。对于跨越多个区域的对象，老一代区域可能非常庞大（浅蓝色带“H”）。
-
-应用程序总是将资源分配到新生代（ eden regions ），但超大型对象除外，它们会被直接分配到老代。
 
 
 
-## 垃圾回收周期
 
-![image-20251228170127415](./Garbage%20Collector%20G1.assets/image-20251228170127415-1766912495326-3.png)
-
-1. Young-only phase: This phase starts with a few Normal young collections that promote objects into the old generation. The transition between the young-only phase and the space-reclamation phase starts when the old generation occupancy reaches a certain threshold, the Initiating Heap Occupancy threshold. At this time, G1 schedules a Concurrent Start young collection instead of a Normal young collection.
-
-2. Space-reclamation phase: This phase consists of multiple young collections that in addition to young generation regions, also evacuate live objects of sets of old generation regions. These collections are also called Mixed collections. The space-reclamation phase ends when G1 determines that evacuating more old generation regions wouldn't yield enough free space worth the effort.
-
-3. After space-reclamation, the collection cycle restarts with another young-only phase. As backup, if the application runs out of memory while gathering liveness information, G1 performs an in-place stop-the-world full heap compaction (Full GC) like other collectors.
-
-   
-
-   
-
-   
