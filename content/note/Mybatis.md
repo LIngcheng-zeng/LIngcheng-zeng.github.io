@@ -1,31 +1,40 @@
 # Mybatis
 
-MyBatis 是一款优秀的持久层框架，它支持自定义 SQL、存储过程以及高级映射。MyBatis 免除了几乎所有的 JDBC 代码以及设置参数和获取结果集的工作。MyBatis 可以通过简单的 XML 或注解来配置和映射原始类型、接口和 Java POJO（Plain Old Java Objects，普通老式 Java 对象）为数据库中的记录.
+## 数据源
 
-XML映射文件/Java类 映射文件 ； 
+获取数据库连接的方式，与 DriverManager 获取数据库连接相比， 提供了更高一层的抽象。旨在封装数据库连接的创建过程和数据连接池的建立。
 
-映射语句： 使用mapper 元素的 id 关联SQL 语句.
+## 事务管理器
 
-映射器是一些绑定映射语句的接口。
+管理数据库事务，封装 管理 数据库事务特征的代码。
 
-# 使用手册
+## Mybatis 作用
 
-XML配置 https://mybatis.org/mybatis-3/zh_CN/sqlmap-xml.html
+MyBatis 免除了几乎所有的 JDBC 代码以及设置参数和获取结果集的工作。
 
-Java API解读 https://mybatis.org/mybatis-3/zh_CN/java-api.html
+MyBatis 可以通过简单的 XML 或注解来配置和映射原始类型、接口和 Java POJO（Plain Old Java Objects，普通老式 Java 对象）为数据库中的记录.
 
-动态SQL : if , choose,foreach ,where 
+## Mybatis 对象
 
-# SqlSessionFactory
+### 通过读取配置创建 SqlSessionFactory
 
-指定生成的SqlSession的特性
+XML 配置文件中包含了对 MyBatis 系统的核心设置，包括获取数据库连接实例的数据源（DataSource）以及决定事务作用域和控制方式的事务管理器（TransactionManager）
 
-1. 是否开启事务处理，事务隔离级别
-2. 从何处获取数据库连接
-3. 语句执行器的类型【为每个语句的执行创建一个新的预处理语句；会复用预处理语句；批量执行所有更新语句，如果 SELECT 在多个更新中间执行，将在必要时将多条更新语句分隔开来，以方便理解】
+### 通过SqlSessionFactory 创建 SqlSession
+
+事务管理，执行语句
+
+### 映射器的 XML 文件 以及 映射器的Java 代码 
+
+### 参数处理器:
+
+javaType --> Jdbc type，变量对象的属性值 --> sql 占位符 的值
+
+### 结果集处理器: 
+
+Jdbc type --> javaType，表的列名 --> 对象的属性值
+
+## 如何扩展mybatis
 
 
-# SqlSession
-
-它包含了所有执行语句、提交或回滚事务以及获取映射器实例的方法。
 
