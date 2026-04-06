@@ -1,0 +1,164 @@
+# legacy.prompt
+# 遗留业务系统解析 · Prompt 模板
+# 使用方式：替换所有 {{占位符}}，选择对应模型变体，粘贴投喂
+# 占位符说明：{{var}} 必填 / {{var?}} 选填（无内容则删除整行）
+# ─────────────────────────────────────────────────────────────
+
+# ════════════════════════════════════════════════
+# VARIANT A · Claude 版（结构化 XML 指令风格）
+# 适用模型：Claude Sonnet 3.5 / Claude Opus
+# ════════════════════════════════════════════════
+
+<task>
+  你是一位精通遗留系统逆向分析的资深架构师，擅长从代码、数据模型和 Git 历史中
+  还原业务逻辑与系统演进脉络。
+  我的核心目标：{{analysis_goal}}
+</task>
+
+<context>
+  <system_info>
+    <name>{{system_name}}</name>
+    <tech_stack>{{tech_stack?}}</tech_stack>
+    <verbal_description>{{verbal_description?}}</verbal_description>
+    <pain_point>{{pain_point?}}</pain_point>
+  </system_info>
+
+  <materials>
+    <code_snippet>
+    -----CODE_START-----
+    {{code_snippet}}
+    -----CODE_END-----
+    </code_snippet>
+
+    <ddl_schema>
+    -----DDL_START-----
+    {{ddl_schema}}
+    -----DDL_END-----
+    </ddl_schema>
+
+    <git_log>
+    -----GIT_LOG_START-----
+    {{git_log}}
+    -----GIT_LOG_END-----
+    </git_log>
+  </materials>
+</context>
+
+<instructions>
+  <step name="system_portrait">
+    1. 用 2~3 句话概括：这个系统做什么、服务哪类用户、核心价值是什么。
+    2. 识别外部依赖（第三方服务/MQ/缓存/数据库），输出 ASCII 依赖关系图。
+    3. 技术债评分（1~5分）及主要依据。
+  </step>
+
+  <step name="git_archaeology">
+    4. 分析 git log，输出以下内容：
+       a. 变更最频繁的 Top3 模块/文件 → 推断是核心模块还是问题区域
+       b. 有无紧急修复集中期（识别关键词：fix/hotfix/urgent/bugfix）
+       c. 系统演进的关键节点（重大重构/功能上线）
+       d. 推断代码的实际核心负责人（如 git log 含作者信息）
+  </step>
+
+  <step name="core_flow">
+    5. 还原 {{business_flow}} 的完整执行链路，用编号步骤列出。
+    6. 识别其中的隐式状态机，列出：状态名 | 触发条件 | 目标状态。
+    7. 标出最容易出故障的节点，说明原因。
+  </step>
+
+  <step name="data_model">
+    8. 解读 DDL：每张表的业务含义 + 命名模糊字段的推断语义。
+    9. 识别逻辑关联（无外键但实际有业务关系的表对）。
+    10. 标出数据设计风险点（类型/长度/索引/NULL约束等）。
+  </step>
+
+  <step name="risk_assessment">
+    11. 如果修改 {{target_module?}}，影响面分析：涉及哪些模块/表/接口。
+    12. Top3 高风险改动点，格式：风险点 | 原因 | 建议动作。
+    13. {{pain_point?}} 的根因推断 + 排查路径（分步列出）。
+  </step>
+</instructions>
+
+<output_format>
+  - 依赖图：ASCII 格式
+  - 状态机：Markdown 表格
+  - 风险点：编号列表，每条不超过 4 行
+  - 代码引用：直接引用原始类名/方法名，不要改写
+  - 禁止输出：泛泛的"建议重构"、无依据的结论
+</output_format>
+
+
+# ════════════════════════════════════════════════
+# VARIANT B · MiniMax 版（角色扮演驱动风格）
+# 适用模型：MiniMax abab6.5 / abab7
+# ════════════════════════════════════════════════
+
+你现在是一位拥有 15 年经验的系统考古学家，专门接手其他团队留下的复杂遗留系统。
+你的工作方式：从代码、数据库和 Git 提交历史中，像侦探一样还原系统的真实面貌。
+
+现在你接手了系统：**{{system_name}}**
+业务背景：{{verbal_description?}}
+我最想搞清楚的问题：{{analysis_goal}}
+当前痛点：{{pain_point?}}
+
+以下是我给你的物料，请认真阅读后按指定步骤分析：
+
+【代码片段】
+-----CODE_START-----
+{{code_snippet}}
+-----CODE_END-----
+
+【表结构 DDL】
+-----DDL_START-----
+{{ddl_schema}}
+-----DDL_END-----
+
+【Git 提交日志】
+-----GIT_LOG_START-----
+{{git_log}}
+-----GIT_LOG_END-----
+
+---
+
+请按以下顺序输出，每节用 `---` 分隔：
+
+**1. 系统画像**
+用 2~3 句话定义这个系统的边界和价值，画出 ASCII 外部依赖图，给技术债打分（1~5分）。
+
+**2. Git 考古报告**
+- 🔥 变更热点 Top3：文件/模块名 + 推断（核心 or 问题区）
+- 🚨 紧急修复集中期：有无？发生在什么阶段？
+- 📈 系统演进关键节点：从提交信息推断重大事件
+- 👤 核心负责人推断（如有作者信息）
+
+**3. 业务流程还原**
+{{business_flow}} 的完整链路（编号步骤）+ 隐式状态机表格 + 最脆弱节点标注。
+
+**4. 数据模型解读**
+每张表一句话业务含义 + 可疑字段语义推断 + 数据设计风险列表。
+
+**5. 改动风险地图**
+如果修改 {{target_module?}}，影响面是什么？
+Top3 雷区：❌ 风险点 → 🔍 原因 → ✅ 建议动作
+
+**6. 痛点专项诊断**（如有痛点）
+{{pain_point?}} 的根因推断 + 分步排查路径。
+
+输出语言：中文。直接从第1节开始，禁止废话开场。
+
+
+# ─────────────────────────────────────────────────────────────
+# 📌 占位符填写参考
+# ─────────────────────────────────────────────────────────────
+# {{system_name}}          示例：订单履约系统 / oms-service
+# {{analysis_goal}}        示例：搞清楚订单状态流转逻辑
+# {{tech_stack?}}          示例：Spring Boot 2.7 + MySQL 5.7 + RocketMQ（选填）
+# {{verbal_description?}}  示例：负责电商订单从下单到发货的全链路处理（选填）
+# {{pain_point?}}          示例：订单状态有时停在 PAYING 无法流转（选填）
+# {{business_flow}}        示例：用户下单 → 支付 → 履约 的完整链路
+# {{target_module?}}       示例：OrderStatusService（选填，有改动计划时填写）
+# {{code_snippet}}         粘贴核心类代码（建议 1~2 个类，不超过 300 行）
+# {{ddl_schema}}           粘贴 SHOW CREATE TABLE 的输出
+# {{git_log}}              粘贴 git log --oneline -50 的输出
+#                          推荐同时粘贴高频变更文件：
+#                          git log --name-only --pretty=format: | sort | uniq -c | sort -rn | head -20
+# ─────────────────────────────────────────────────────────────
