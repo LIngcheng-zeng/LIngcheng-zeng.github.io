@@ -35,5 +35,8 @@ sudo usermod -a -G ollama $(whoami)
 # 把你（当前操作电脑的人）加入到 ollama 用户组里
 
 模型默认存储在 /usr/share/ollama/.ollama
+
+# 启动neo4j
+sudo service neo4j start
 ```
 
